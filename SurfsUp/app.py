@@ -110,9 +110,39 @@ def start_only(start):
 
     # Convert string to datetime
     date_format = '%Y-%m-%d'      # Set date format
-    last_date = dt.datetime.strptime(recent_date, date_format).date()   
+    last_date = dt.datetime.strptime(recent_date, date_format).date()  
+
+    first_date = dt.datetime.strptime(start, date_format).date() 
+
+    # Query min, avg, max temps from measurement table
+    start_only_mam = session.query(func.min(measurement.tobs).label("TMIN")\
+        , func.avg(measurement.tobs).label("TAVG")\
+        , func.max(measurement.tobs).label("TMAX"))\
+        .filter(measurement.date >= first_date, measurement.date <= last_date).all()
+
+    start_only_mam_list = list(np.ravel(start_only_mam))
+
+    return jsonify(start_only_mam_list)
 
 
+@app.route("/api/v1.0/<start>/<end>")
+def start_end(start, end):
+    # Set date format
+    date_format = '%Y-%m-%d'  
+
+    # Convert start and end date value from string to datetime 
+    start_date = dt.datetime.strptime(start, date_format).date()  
+    end_date = dt.datetime.strptime(end, date_format).date() 
+
+    # Query min, avg, max temps from measurement table
+    start_end_mam = session.query(func.min(measurement.tobs).label("TMIN")\
+        , func.avg(measurement.tobs).label("TAVG")\
+        , func.max(measurement.tobs).label("TMAX"))\
+        .filter(measurement.date >= start_date, measurement.date <= end_date).all()
+
+    start_end_mam_list = list(np.ravel(start_end_mam))
+
+    return jsonify(start_end_mam_list)
 
 
 if __name__ == "__main__":
